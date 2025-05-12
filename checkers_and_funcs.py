@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains  # Импортируем для движения мыши
 from config import BASE_URL, SERVICES_URL, LOGIN, PASSWORD, USER_NAME
 from logger_config import setup_logger
+from telegram_sender import send_message
 
 logger = setup_logger(__name__)
 
@@ -141,14 +142,13 @@ def check_slots(path="cookies.json", url=SERVICES_URL):
         "Connection": "keep-alive",
     }
 
-    logger.info("🌐 Делаем запрос к %s", url)
-
     cookies = load_cookies()
     if not cookies:
         logger.error("🚫 Не удалось загрузить cookies, остановка проверки.")
         return
 
     try:
+        logger.info("🌐 Делаем запрос к %s", url)
         response = requests.get(url, cookies=cookies, headers=headers, timeout=10)
         response.raise_for_status()
     except requests.exceptions.RequestException as e:
@@ -180,6 +180,7 @@ def check_slots(path="cookies.json", url=SERVICES_URL):
 
     if len(found_links) > 0:
         logger.info("✅ Есть слот! Найдены ссылки: %s", found_links)
+        send_message(f"Есть слоты!!!\n" + "\n".join(found_links))
     else:
         logger.info("🕵️ Слотов нет")
 

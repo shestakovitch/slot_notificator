@@ -36,9 +36,9 @@ def update_cookies():
 
 def refresh_cookies():
     while True:
-        update_cookies()
         logger.info("🕓 Ждем 20 минут до следующего обновления cookies")
         time.sleep(20 * 60)
+        update_cookies()
 
 
 def run_check_slots():
