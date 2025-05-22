@@ -1,3 +1,4 @@
+import os
 import threading
 import time
 from checkers_and_funcs import check_login, check_unavailable_or_verification_error, login, save_cookies, check_slots

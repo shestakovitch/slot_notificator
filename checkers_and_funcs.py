@@ -1,8 +1,9 @@
 import time
 import random
 import json
-
 import requests
+import os
+
 from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
@@ -70,9 +71,9 @@ def login(driver):
 
 def check_unavailable_or_verification_error(driver):
     """
-        Проверяет заголовок страницы и URL на наличие признаков ошибки.
-        При обнаружении логирует, завершает драйвер и возвращает True.
-        """
+    Проверяет заголовок страницы и URL на наличие признаков ошибки.
+    При обнаружении логирует, завершает драйвер и возвращает True.
+    """
     try:
         if "unavailable" in driver.title.lower():
             logger.error(f"Обнаружена ошибка: unavailable")
@@ -127,7 +128,7 @@ def load_cookies(path="cookies.json"):
         return {}
 
 
-def check_slots(path="cookies.json", url=SERVICES_URL):
+def check_slots(url=SERVICES_URL):
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -181,6 +182,8 @@ def check_slots(path="cookies.json", url=SERVICES_URL):
     if len(found_links) > 0:
         logger.info("✅ Есть слот! Найдены ссылки: %s", found_links)
         send_message(f"Есть слоты!!!\n" + "\n".join(found_links))
+        logger.info("🛑 Слот найден — завершаем выполнение программы.")
+        os._exit(0)
     else:
         logger.info("🕵️ Слотов нет")
 
