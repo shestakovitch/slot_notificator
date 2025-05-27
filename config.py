@@ -18,6 +18,7 @@ SECOND_PERSON_ADDRESS=os.getenv("SECOND_PERSON_ADDRESS")
 SECOND_PERSON_STATUS=os.getenv("SECOND_PERSON_STATUS")
 
 BASE_URL = "https://prenotami.esteri.it"
-SERVICES_URL = "https://prenotami.esteri.it/Services/RetrieveServices"
+SALTER1_URL = "https://prenotami.esteri.it/Services/Booking/1151"
+SALTER2_URL = "https://prenotami.esteri.it/Services/Booking/1258"
 COOKIES_FILE = "cookies.json"
 

@@ -1,9 +1,10 @@
-import os
 import threading
 import time
+
 from checkers_and_funcs import check_login, check_unavailable_or_verification_error, login, save_cookies, check_slots
 from driver_setup import create_driver
 from logger_config import setup_logger
+from config import SALTER1_URL, SALTER2_URL
 
 logger = setup_logger(__name__)
 
@@ -45,7 +46,7 @@ def refresh_cookies():
 def run_check_slots():
     while True:
         try:
-            check_slots()
+            check_slots(SALTER1_URL, SALTER2_URL)
         except Exception as e:
             logger.error(f"❌ Ошибка в check_slots: {e}")
         time.sleep(60)  # Пауза 1 минута

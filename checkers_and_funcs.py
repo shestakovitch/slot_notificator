@@ -2,14 +2,13 @@ import time
 import random
 import json
 import requests
-import os
 
 from selenium.common import NoSuchElementException, TimeoutException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.action_chains import ActionChains  # Импортируем для движения мыши
-from config import BASE_URL, SERVICES_URL, LOGIN, PASSWORD, USER_NAME
+from config import BASE_URL, LOGIN, PASSWORD, USER_NAME
 from logger_config import setup_logger
 from telegram_sender import send_message
 
@@ -128,7 +127,7 @@ def load_cookies(path="cookies.json"):
         return {}
 
 
-def check_slots(url=SERVICES_URL):
+def check_slots(url1, url2):
     headers = {
         "User-Agent": (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
@@ -148,43 +147,36 @@ def check_slots(url=SERVICES_URL):
         logger.error("🚫 Не удалось загрузить cookies, остановка проверки.")
         return
 
-    try:
-        logger.info("🌐 Делаем запрос к %s", url)
-        response = requests.get(url, cookies=cookies, headers=headers, timeout=10)
-        response.raise_for_status()
-    except requests.exceptions.RequestException as e:
-        logger.error("❌ Ошибка запроса: %s", e)
-        return
+    for url in (url1, url2):
+        try:
+            logger.info("🌐 Делаем запрос к %s", url)
+            response = requests.get(url, cookies=cookies, headers=headers, timeout=5)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error("❌ Ошибка запроса к %s: %s", url, e)
+            continue
 
-    try:
-        data = response.json()
-    except json.JSONDecodeError:
-        logger.error("❌ Не удалось декодировать JSON. Ответ: %s", response.text[:500])
-        return
+        page_text = response.text
 
-    target_ids = {1151, 1258}
-    excluded_links = {
-        "https://vistoperitalia.esteri.it/home/en",
-        "https://ambbelgrado.esteri.it/ambasciata_belgrado/sr/informazioni_e_servizi/visti/visto-per-studio/",
-    }
+        ERROR_MESSAGES = (
+            "this site can’t be reached",
+            "this site can't be reached",
+            "runtime error",
+        )
 
-    found_links = []
+        try:
+            # Проверка на критические ошибки
+            for message in ERROR_MESSAGES:
+                if message in page_text.lower():
+                    logger.error("🚫 Сайт недоступен: %s", message)
+                    return True
 
-    for service in data:
-        if service.get("IdServizioErogato") in target_ids:
-            raw_links = service.get("LinkServizioErogato", [])
-            # Очищаем от пробелов и фильтруем исключённые
-            filtered_links = [
-                link.strip() for link in raw_links if link.strip() not in excluded_links
-            ]
-            found_links.extend(filtered_links)
+            if "Informacije o rezervaciji" in page_text.lower():
+                logger.info("🟢 Возможно, появился слот!")
+                send_message(f"Возможно появился слот по этой ссылке: {url}")
 
-    if len(found_links) > 0:
-        logger.info("✅ Есть слот! Найдены ссылки: %s", found_links)
-        send_message(f"Есть слоты!!!\n" + "\n".join(found_links))
-        logger.info("🛑 Слот найден — завершаем выполнение программы.")
-        os._exit(0)
-    else:
-        logger.info("🕵️ Слотов нет")
+        except Exception as e:
+            logger.error("❌ Ошибка при проверке страницы: %s", e)
+            continue
 
-    return found_links
+        return False
