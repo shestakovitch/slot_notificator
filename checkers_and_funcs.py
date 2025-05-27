@@ -174,9 +174,11 @@ def check_slots(url1, url2):
             if "Informacije o rezervaciji" in page_text.lower():
                 logger.info("🟢 Возможно, появился слот!")
                 send_message(f"Возможно появился слот по этой ссылке: {url}")
+            else:
+                logger.info("⚠️ Нет слотов")
 
         except Exception as e:
             logger.error("❌ Ошибка при проверке страницы: %s", e)
             continue
 
-        return False
+    return False
